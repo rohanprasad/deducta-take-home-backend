@@ -14,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<DocumentEnrichedConsumer>();
+    x.AddConsumer<DocumentEnrichmentFailedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -27,6 +28,12 @@ builder.Services.AddMassTransit(x =>
         {
             e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(1)));
             e.ConfigureConsumer<DocumentEnrichedConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("document-enrichment-failed", e =>
+        {
+            e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(1)));
+            e.ConfigureConsumer<DocumentEnrichmentFailedConsumer>(context);
         });
     });
 });
